@@ -18,31 +18,30 @@ jobs:
         run: |
           # Ensure there is a previous commit
           if git rev-parse HEAD^ >/dev/null 2>&1; then
-            CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
+            git diff --name-only HEAD^ HEAD > changed_files.txt
           else
-            CHANGED_FILES=$(git diff --name-only HEAD)
+            git diff --name-only HEAD > changed_files.txt
           fi
-          
-          echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
 
       - name: "Determine if build should be skipped"
         id: skip-check
         run: |
           SKIP_BUILD=true
-          for file in $CHANGED_FILES; do
-            if [[ "$file" =~ ^(database/|docs/|.*\.md)$ ]]; then
-              continue
-            else
+          
+          # Read changed files and check for patterns
+          while IFS= read -r file; do
+            if [[ ! "$file" =~ ^(database/|docs/|.*\.md)$ ]]; then
               SKIP_BUILD=false
               break
             fi
-          done
+          done < changed_files.txt
+
           echo "SKIP_BUILD=$SKIP_BUILD" >> $GITHUB_ENV
 
       - name: "Output Build Status"
         run: |
           if [[ "$SKIP_BUILD" == "true" ]]; then
-            echo " No relevant changes detected. Skipping build."
+            echo "🚀 No relevant changes detected. Skipping build."
           else
-            echo " Relevant changes detected. A build would normally be triggered."
+            echo "✅ Relevant changes detected. A build would normally be triggered."
           fi
