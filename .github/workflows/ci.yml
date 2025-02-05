@@ -42,7 +42,7 @@ jobs:
       - name: "Output Build Status"
         run: |
           if [[ "$SKIP_BUILD" == "true" ]]; then
-            echo "🚀 No relevant changes detected. Skipping build."
+            echo " No relevant changes detected. Skipping build."
           else
-            echo "✅ Relevant changes detected. A build would normally be triggered."
+            echo " Relevant changes detected. A build would normally be triggered."
           fi
