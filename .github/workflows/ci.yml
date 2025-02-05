@@ -10,12 +10,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 2  # Ensure at least two commits are available
 
       - name: "Check for changes"
         id: changes
         run: |
-          git fetch --no-tags --depth=1 origin main
-          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
+          # Ensure there is a previous commit
+          if git rev-parse HEAD^ >/dev/null 2>&1; then
+            CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
+          else
+            CHANGED_FILES=$(git diff --name-only HEAD)
+          fi
+          
           echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
 
       - name: "Determine if build should be skipped"
