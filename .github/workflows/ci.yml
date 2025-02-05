@@ -1,0 +1,41 @@
+name: "deploy opus platform api to EC2"
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  continuous-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: "Check for changes"
+        id: changes
+        run: |
+          git fetch --no-tags --depth=1 origin main
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD)
+          echo "CHANGED_FILES=$CHANGED_FILES" >> $GITHUB_ENV
+
+      - name: "Determine if build should be skipped"
+        id: skip-check
+        run: |
+          SKIP_BUILD=true
+          for file in $CHANGED_FILES; do
+            if [[ "$file" =~ ^(database/|docs/|.*\.md)$ ]]; then
+              continue
+            else
+              SKIP_BUILD=false
+              break
+            fi
+          done
+          echo "SKIP_BUILD=$SKIP_BUILD" >> $GITHUB_ENV
+
+      - name: "Output Build Status"
+        run: |
+          if [[ "$SKIP_BUILD" == "true" ]]; then
+            echo "🚀 No relevant changes detected. Skipping build."
+          else
+            echo "✅ Relevant changes detected. A build would normally be triggered."
+          fi
